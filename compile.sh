@@ -1,2 +1,2 @@
 cd src
-javac -d ../bin -cp ../lib/sfntly.jar fr/free/nrw/DatabaseGenerator.java
+javac -d ../bin -cp ../lib/*.jar fr/free/nrw/DatabaseGenerator.java
