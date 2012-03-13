@@ -38,75 +38,95 @@ public class DatabaseGenerator {
     private String fontsDirectory;
 
     /**
+     * Constructor.
+     */
+    public DatabaseGenerator(String fontsDirectory) {
+        this.fontsDirectory = fontsDirectory;
+    }
+
+    /**
      * Generate database.
      */
     public void generate() throws Exception {
         String[] fonts = new File(fontsDirectory).list();
-        List<String> groups = new ArrayList<String>();
-        List<Character> zones = new ArrayList<Character>();
-        List<Integer> zonesGroups = new ArrayList<Integer>(); // Could use Character but using Integer for clarity.
         
-        // Test all fonts for all characters
+        // A set of fonts is for instance "KhmerOS.ttf;DroidSans.ttf"
+        List<String> fontsSets = new ArrayList<String>();
+        
+        // Each zone is an area of UTF-16 where adjacent characters have
+        // the same set of suitable fonts.
+        List<Character> zones = new ArrayList<Character>();
+        
+        // Maps each zone to a font set.
+        // Same size as the "zones" list.
+        // Contains for each zone the index of the suitable fonts set.
+        List<Integer> mappings = new ArrayList<Integer>();
+        
+        // Check suitability of all fonts, for each character of UTF-16.
         String previousSuitableFonts = "";
-        for (char c=0; c<65535; c++) {
-            System.out.print(c + ": ");
+        for (char character=0; character<65535; character++) {
+            System.out.print(character + ": ");
             String suitableFonts = "";
-            for (int j=0; j<fonts.length; j++) {
-                if(fontHasCharacter(fonts[j], c)) {
-                    System.out.print(fonts[j] + ";");
-                    suitableFonts += fonts[j] + ";";
+            for (String font : fonts) {
+                if(fontHasCharacter(font, character)) {
+                    System.out.print(font + ";");
+                    suitableFonts += font + ";";
                 }
             }
             System.out.print("\n");
             if ( ! suitableFonts.equals(previousSuitableFonts)) {
-                if ( ! groups.contains(suitableFonts)) {
-                    groups.add(suitableFonts);
+                if ( ! fontsSets.contains(suitableFonts)) {
+                    fontsSets.add(suitableFonts);
                 }
-                int suitableGroup = groups.indexOf(suitableFonts);
-                zones.add(new Character(c));
-                zonesGroups.add(new Integer(suitableGroup));
+                int suitableGroup = fontsSets.indexOf(suitableFonts);
+                zones.add(new Character(character));
+                mappings.add(new Integer(suitableGroup));
                 previousSuitableFonts = suitableFonts;
             }
         }
         
         // Debug log.
         System.out.println("\n=== Compressed database ===");
-        for (int i=0;i<groups.size(); i++) {
-            System.out.println("Group " + i + " : " + groups.get(i));
+        for (int i=0;i<fontsSets.size(); i++) {
+            System.out.println("Group " + i + " : " + fontsSets.get(i));
         }
         for (int i=0;i<zones.size(); i++) {
-            System.out.println("Zone " + (int)zones.get(i) + " → Group " + zonesGroups.get(i));
+            System.out.println("Zone " + (int)zones.get(i) + " → Group " + mappings.get(i));
         }
         
         // Generate Java code.
-        BufferedWriter java = new BufferedWriter(new FileWriter("AntisquareData.java"));
-        // Groups.
-        java.write("private final static String[] groups = {\n");
-        for (int i=0;i<groups.size(); i++) {
-            java.write("\"" + groups.get(i) + "\"");
-            if(i != groups.size() - 1) {
-                java.write(",\n");
-            }
+        BufferedWriter java = new BufferedWriter(new FileWriter("gen/AntisquareData.java"));
+        java.write("public class AntisquareData {\n");
+        
+        // Generate Java code for "fontsSets".
+        java.write("public final static String[] fontsSets = {\n");
+        String delimitator = "";
+        for (int i=0;i<fontsSets.size(); i++) {
+            java.write(delimitator);
+            java.write("\"" + fontsSets.get(i) + "\"");
+            delimitator = ",\n";
         }
         java.write("};\n");
-        // Zones.
-        java.write("private final static char[] zones = {\n");
+        
+        // Generate Java code for "zones".
+        java.write("public final static char[] zones = {\n");
+        delimitator = "";
         for (int i=0;i<zones.size(); i++) {
+            java.write(delimitator);
             java.write("" + (int)zones.get(i));
-            if(i != zones.size() - 1) {
-                java.write(",\n");
-            }
+            delimitator = ",\n";
         }
         java.write("};\n");
-        // ZonesGroups.
-        java.write("private final static char[] zonesGroups = {\n");
-        for (int i=0;i<zonesGroups.size(); i++) {
-            java.write("" + zonesGroups.get(i));
-            if(i != zonesGroups.size() - 1) {
-                java.write(",\n");
-            }
+        
+        // Generate Java code for "mappings".
+        java.write("public final static char[] mappings = {\n");
+        delimitator = "";
+        for (int i=0;i<mappings.size(); i++) {
+            java.write(delimitator);
+            java.write("" + mappings.get(i));
+            delimitator = ",\n";
         }
-        java.write("};\n");
+        java.write("};\n}\n");
         java.close();
     }
 
@@ -120,20 +140,15 @@ public class DatabaseGenerator {
         Font font = srcFontarray[0];
         CMapTable cmapTable = font.getTable(Tag.cmap);
         // Use the bigger cmap table if available.
-        CMap cmap = cmapTable.cmap(Font.PlatformId.Windows.value(), Font.WindowsEncodingId.UnicodeUCS4.value());
+        CMap cmap = cmapTable.cmap(Font.PlatformId.Windows.value(),
+                Font.WindowsEncodingId.UnicodeUCS4.value());
         if (cmap == null) 
-            cmap = cmapTable.cmap(Font.PlatformId.Windows.value(), Font.WindowsEncodingId.UnicodeUCS2.value());
+            cmap = cmapTable.cmap(Font.PlatformId.Windows.value(),
+                    Font.WindowsEncodingId.UnicodeUCS2.value());
  
         if (cmap.glyphId(charId) != 0)
             return true;
         return false;
-    }
-
-    /**
-     * Constructor.
-     */
-    public DatabaseGenerator(String fontsDirectory) {
-        this.fontsDirectory = fontsDirectory;
     }
 
     /**
