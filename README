@@ -1,0 +1,4 @@
+To eliminate all squares, Antisquare tells you which font is appropriate to display a given character.
+
+1) Database of mappings {character→suitable fonts for that character}
+2) API to get the name of the suitable font from a character or string
