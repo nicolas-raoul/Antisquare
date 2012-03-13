@@ -1,0 +1,14 @@
+OpenSans-Regular.ttf
+Download URL: https://code.google.com/p/sfntly/source/browse/trunk/data/testdata/OpenSans-Regular.ttf
+Project URL: ?
+License: ?
+
+DroidSans-Regular.ttf
+Download URL: https://code.google.com/p/sfntly/source/browse/trunk/data/testdata/DroidSans-Regular.ttf
+Project URL: ?
+License: ?
+
+KhmerOS.ttf
+Download URL: http://prdownloads.sourceforge.net/khmer/KhmerOS.ttf?download
+Project URL: http://www.khmeros.info/drupal612/en/fonts
+License: ?
