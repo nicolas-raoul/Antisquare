@@ -1,12 +1,17 @@
 package fr.free.nrw;
 
-import java.io.FileInputStream;
-import java.io.File;
-import com.google.typography.font.sfntly.table.core.CMap;
-import com.google.typography.font.sfntly.table.core.CMapTable;
-import com.google.typography.font.sfntly.Tag;
 import com.google.typography.font.sfntly.Font;
 import com.google.typography.font.sfntly.FontFactory;
+import com.google.typography.font.sfntly.Tag;
+import com.google.typography.font.sfntly.table.core.CMap;
+import com.google.typography.font.sfntly.table.core.CMapTable;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Generate a database of mappings {character→suitable fonts for that character}
@@ -34,20 +39,75 @@ public class DatabaseGenerator {
 
     /**
      * Generate database.
-     * TODO: Instead of outputing to console, generate efficient data structure.
      */
     public void generate() throws Exception {
         String[] fonts = new File(fontsDirectory).list();
+        List<String> groups = new ArrayList<String>();
+        List<Character> zones = new ArrayList<Character>();
+        List<Integer> zonesGroups = new ArrayList<Integer>(); // Could use Character but using Integer for clarity.
+        
         // Test all fonts for all characters
+        String previousSuitableFonts = "";
         for (char c=0; c<65535; c++) {
             System.out.print(c + ": ");
+            String suitableFonts = "";
             for (int j=0; j<fonts.length; j++) {
                 if(fontHasCharacter(fonts[j], c)) {
-                    System.out.print(fonts[j] + " ");
+                    System.out.print(fonts[j] + ";");
+                    suitableFonts += fonts[j] + ";";
                 }
             }
             System.out.print("\n");
+            if ( ! suitableFonts.equals(previousSuitableFonts)) {
+                if ( ! groups.contains(suitableFonts)) {
+                    groups.add(suitableFonts);
+                }
+                int suitableGroup = groups.indexOf(suitableFonts);
+                zones.add(new Character(c));
+                zonesGroups.add(new Integer(suitableGroup));
+                previousSuitableFonts = suitableFonts;
+            }
         }
+        
+        // Debug log.
+        System.out.println("\n=== Compressed database ===");
+        for (int i=0;i<groups.size(); i++) {
+            System.out.println("Group " + i + " : " + groups.get(i));
+        }
+        for (int i=0;i<zones.size(); i++) {
+            System.out.println("Zone " + (int)zones.get(i) + " → Group " + zonesGroups.get(i));
+        }
+        
+        // Generate Java code.
+        BufferedWriter java = new BufferedWriter(new FileWriter("AntisquareData.java"));
+        // Groups.
+        java.write("private final static String[] groups = {\n");
+        for (int i=0;i<groups.size(); i++) {
+            java.write("\"" + groups.get(i) + "\"");
+            if(i != groups.size() - 1) {
+                java.write(",\n");
+            }
+        }
+        java.write("};\n");
+        // Zones.
+        java.write("private final static char[] zones = {\n");
+        for (int i=0;i<zones.size(); i++) {
+            java.write("" + (int)zones.get(i));
+            if(i != zones.size() - 1) {
+                java.write(",\n");
+            }
+        }
+        java.write("};\n");
+        // ZonesGroups.
+        java.write("private final static char[] zonesGroups = {\n");
+        for (int i=0;i<zonesGroups.size(); i++) {
+            java.write("" + zonesGroups.get(i));
+            if(i != zonesGroups.size() - 1) {
+                java.write(",\n");
+            }
+        }
+        java.write("};\n");
+        java.close();
     }
 
     /**
