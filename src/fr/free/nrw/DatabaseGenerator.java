@@ -34,24 +34,15 @@ public class DatabaseGenerator {
 
     /**
      * Generate database.
+     * TODO: Instead of outputing to console, generate efficient data structure.
      */
     public void generate() throws Exception {
-        // TODO: Test for all characters (instead of the few ones below).
-        char[] characters = new char[]{
-            'k', // Latin
-            '記', // Japanese
-            'ζ', // Ancient Greek
-            'ʢ', // IPA
-            'ﻕ', // Arabic
-            'ណ' // Khmer
-            //'ดิ' // Thai // Compiler fails: illegal character \3636
-        };
         String[] fonts = new File(fontsDirectory).list();
-        // Test all fonts for each character
-        for (int i=0; i<characters.length; i++) {
-            System.out.print(characters[i] + ": ");
+        // Test all fonts for all characters
+        for (char c=0; c<65535; c++) {
+            System.out.print(c + ": ");
             for (int j=0; j<fonts.length; j++) {
-                if(fontHasCharacter(fonts[j], characters[i])) {
+                if(fontHasCharacter(fonts[j], c)) {
                     System.out.print(fonts[j] + " ");
                 }
             }
@@ -63,6 +54,7 @@ public class DatabaseGenerator {
      * Check whether the given font has a particular character.
      */
     private boolean fontHasCharacter(String fontFilename, char charId) throws Exception {
+        // TODO: cache cmap tables instead of reloading every time.
         Font[] srcFontarray = FontFactory.getInstance().loadFonts(new FileInputStream(
 		fontsDirectory + System.getProperty("file.separator") + fontFilename));
         Font font = srcFontarray[0];
