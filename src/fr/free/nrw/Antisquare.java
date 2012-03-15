@@ -1,6 +1,8 @@
 package fr.free.nrw;
 
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Random;
 
 /**
  * Returns a list of suitable fonts for a given character or string.
@@ -57,5 +59,21 @@ public class Antisquare {
         System.out.println("suitable:" + antisquare.getSuitableFonts('t')); // KhmerOS.ttf DroidSans-Regular.ttf OpenSans-Regular.ttf
         System.out.println("suitable:" + antisquare.getSuitableFonts('Ĕ')); // DroidSans-Regular.ttf OpenSans-Regular.ttf
         System.out.println("suitable:" + antisquare.getSuitableFonts('œ')); // KhmerOS.ttf DroidSans-Regular.ttf OpenSans-Regular.ttf
+        
+        // 2.10^8 in 8 seconds on my laptop.
+        int NB = 100000000;
+        char[] characters = new char[NB];
+        Random random = new Random();
+        for (int i=0; i<NB; i++) {
+            characters[i] = (char)random.nextInt(65535);
+        }
+        System.out.println(new Date());
+        for (char character : characters) {
+            antisquare.getSuitableFonts(character);
+        }
+        for (char character : characters) {
+            antisquare.getSuitableFonts((char)(65535 - character));
+        }
+        System.out.println(new Date());
     }
 }
