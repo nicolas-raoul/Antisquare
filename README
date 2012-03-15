@@ -4,6 +4,6 @@ Antisquare helps you avoid those squares by telling you which font is appropriat
 Usage:
 1) Put your fonts in the fonts directory
 2) Run generate-database.sh 
-3) Copy AntiSquareData.java and Antisquare.java to your app
+3) Copy AntisquareData.java and Antisquare.java to your app
 3) In your app, call: new Antisquare().getSuitableFonts('ណ')
 4) Result: "KhmerOS.ttf"
