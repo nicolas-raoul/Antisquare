@@ -1,14 +1,9 @@
 Do some of your users see white squares like "Ϳ" ?
 Antisquare helps you avoid those squares by telling you which font is appropriate to display a given character (among the fonts you choose to embed).
 
-We are looking for volunteers! Here is our goal:
-1) Database of mappings {character→suitable fonts for that character}
-2) API to get the name of the suitable font from a character or string
-
-Current usage example:
-./compile.sh
-./generate-database.sh 
-ណ: KhmerOS.ttf 
-ζ: DroidSans-Regular.ttf OpenSans-Regular.ttf 
-ʢ: 
-[...]
+Usage:
+1) Put your fonts in the fonts directory
+2) Run generate-database.sh 
+3) Copy AntiSquareData.java and Antisquare.java to your app
+3) In your app, call: new Antisquare().getSuitableFonts('ណ:')
+4) Result: "KhmerOS.ttf"
