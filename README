@@ -5,5 +5,5 @@ Usage:
 1) Put your fonts in the fonts directory
 2) Run generate-database.sh 
 3) Copy AntiSquareData.java and Antisquare.java to your app
-3) In your app, call: new Antisquare().getSuitableFonts('ណ:')
+3) In your app, call: new Antisquare().getSuitableFonts('ណ')
 4) Result: "KhmerOS.ttf"
