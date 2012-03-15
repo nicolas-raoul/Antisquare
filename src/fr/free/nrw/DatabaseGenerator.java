@@ -63,9 +63,9 @@ public class DatabaseGenerator {
         List<Integer> mappings = new ArrayList<Integer>();
         
         // Check suitability of all fonts, for each character of UTF-16.
-        String previousSuitableFonts = "";
+        String previousSuitableFonts = null;
         for (char character=0; character<65535; character++) {
-            System.out.print(character + ": ");
+            System.out.print((int)character + ":" + character + ": ");
             String suitableFonts = "";
             for (String font : fonts) {
                 if(fontHasCharacter(font, character)) {
@@ -74,7 +74,7 @@ public class DatabaseGenerator {
                 }
             }
             System.out.print("\n");
-            if ( ! suitableFonts.equals(previousSuitableFonts)) {
+            if ( previousSuitableFonts == null || ! suitableFonts.equals(previousSuitableFonts)) {
                 if ( ! fontsSets.contains(suitableFonts)) {
                     fontsSets.add(suitableFonts);
                 }
@@ -95,7 +95,8 @@ public class DatabaseGenerator {
         }
         
         // Generate Java code.
-        BufferedWriter java = new BufferedWriter(new FileWriter("gen/AntisquareData.java"));
+        BufferedWriter java = new BufferedWriter(new FileWriter("gen/fr/free/nrw/AntisquareData.java"));
+        java.write("package fr.free.nrw;\n");
         java.write("public class AntisquareData {\n");
         
         // Generate Java code for "fontsSets".
