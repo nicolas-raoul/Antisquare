@@ -50,8 +50,8 @@ public class DatabaseGenerator {
     public void generate() throws Exception {
         String[] fonts = new File(fontsDirectory).list();
         
-        // A set of fonts is for instance "KhmerOS.ttf;DroidSans.ttf"
-        List<String> fontsSets = new ArrayList<String>();
+        // A set of fonts is for instance KhmerOS.ttf,DroidSans.ttf
+        List<List<String>> fontsSets = new ArrayList<List<String>>();
         
         // Each zone is an area of UTF-16 where adjacent characters have
         // the same set of suitable fonts.
@@ -63,14 +63,14 @@ public class DatabaseGenerator {
         List<Integer> mappings = new ArrayList<Integer>();
         
         // Check suitability of all fonts, for each character of UTF-16.
-        String previousSuitableFonts = null;
+        List<String> previousSuitableFonts = null;
         for (char character=0; character<65535; character++) {
             System.out.print((int)character + ":" + character + ": ");
-            String suitableFonts = "";
+            List<String> suitableFonts = new ArrayList<String>();
             for (String font : fonts) {
                 if(fontHasCharacter(font, character)) {
-                    System.out.print(font + ";");
-                    suitableFonts += font + ";";
+                    System.out.print(font + Antisquare.FONTS_SEPARATOR);
+                    suitableFonts.add(font);
                 }
             }
             System.out.print("\n");
@@ -100,11 +100,20 @@ public class DatabaseGenerator {
         java.write("public class AntisquareData {\n");
         
         // Generate Java code for "fontsSets".
-        java.write("public final static String[] fontsSets = {\n");
+        java.write("public final static String[][] fontsSets = {\n");
         String delimitator = "";
         for (int i=0;i<fontsSets.size(); i++) {
             java.write(delimitator);
-            java.write("\"" + fontsSets.get(i) + "\"");
+            java.write("{");
+            
+            String subDelimitator = "";
+            for (String font : fontsSets.get(i)) {
+                java.write(subDelimitator);
+                java.write("\"" + font + "\"");
+                subDelimitator = ", ";
+            }
+            
+            java.write("}");
             delimitator = ",\n";
         }
         java.write("};\n");

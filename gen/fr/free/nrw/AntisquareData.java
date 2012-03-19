@@ -1,11 +1,11 @@
 package fr.free.nrw;
 public class AntisquareData {
-public final static String[] fontsSets = {
-"",
-"KhmerOS.ttf;DroidSans-Regular.ttf;OpenSans-Regular.ttf;",
-"DroidSans-Regular.ttf;OpenSans-Regular.ttf;",
-"OpenSans-Regular.ttf;",
-"KhmerOS.ttf;"};
+public final static String[][] fontsSets = {
+{},
+{"KhmerOS.ttf", "DroidSans-Regular.ttf", "OpenSans-Regular.ttf"},
+{"DroidSans-Regular.ttf", "OpenSans-Regular.ttf"},
+{"OpenSans-Regular.ttf"},
+{"KhmerOS.ttf"}};
 public final static char[] zones = {
 0,
 32,

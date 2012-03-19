@@ -1,8 +1,8 @@
 package fr.free.nrw;
 
 import java.util.Arrays;
-import java.util.Date;
-import java.util.Random;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Returns a list of suitable fonts for a given character or string.
@@ -24,10 +24,16 @@ import java.util.Random;
 public class Antisquare {
     
     /**
+     * Separator between fonts in fonts lists.
+     */
+    public final static String FONTS_SEPARATOR = ";";
+    
+    /**
      * List of suitable fonts for a given character.
      * Data has to be generated beforehand, see DatabaseGenerator.
      */
-    public String getSuitableFonts(char character) {
+    public static String[] getSuitableFonts(char character) {
+        // Binary search in the Antisquare data.
         int zone = Arrays.binarySearch(AntisquareData.zones, character);
         if (zone >= 0) {
             return AntisquareData.fontsSets[AntisquareData.mappings[zone]];
@@ -46,34 +52,29 @@ public class Antisquare {
      * Data has to be generated beforehand, see DatabaseGenerator.
      * If no font is totally suitable, the "most" suitable is returned.
      */
-    public String getSuitableFonts(String string) {
-        return "TODO";
-    }
-    
-    /**
-     * Launch search from system.
-     */
-    public static void main(String[] args) {
-        Antisquare antisquare = new Antisquare();
-        System.out.println("suitable:" + antisquare.getSuitableFonts('\u0000')); // 
-        System.out.println("suitable:" + antisquare.getSuitableFonts('t')); // KhmerOS.ttf DroidSans-Regular.ttf OpenSans-Regular.ttf
-        System.out.println("suitable:" + antisquare.getSuitableFonts('Ĕ')); // DroidSans-Regular.ttf OpenSans-Regular.ttf
-        System.out.println("suitable:" + antisquare.getSuitableFonts('œ')); // KhmerOS.ttf DroidSans-Regular.ttf OpenSans-Regular.ttf
-        
-        // 2.10^8 in 8 seconds on my laptop.
-        int NB = 100000000;
-        char[] characters = new char[NB];
-        Random random = new Random();
-        for (int i=0; i<NB; i++) {
-            characters[i] = (char)random.nextInt(65535);
+    public static String getSuitableFonts(String string) {
+        // For each font, count how many characters of the string are correctly displayed.
+        Map<String, Integer> votes = new HashMap<String, Integer>();
+        for (char character : string.toCharArray()) {
+            for (String font : getSuitableFonts(character)) {
+                if (votes.containsKey(font)) {
+                    int incrementedVoteCount = votes.get(font).intValue() + 1;
+                    votes.put(font, new Integer(incrementedVoteCount));
+                }
+                else {
+                    votes.put(font, new Integer(1));
+                }
+            }
         }
-        System.out.println(new Date());
-        for (char character : characters) {
-            antisquare.getSuitableFonts(character);
+        // Find the font that correctly displays the highest number of characters.
+        String mostSuitableFont = null;
+        int mostSuitableFontVotes = 0;
+        for(Map.Entry<String,Integer> entry : votes.entrySet()){
+            if(entry.getValue().intValue() > mostSuitableFontVotes){
+                mostSuitableFont = entry.getKey();
+                mostSuitableFontVotes = entry.getValue();
+            }
         }
-        for (char character : characters) {
-            antisquare.getSuitableFonts((char)(65535 - character));
-        }
-        System.out.println(new Date());
+        return mostSuitableFont;
     }
 }
