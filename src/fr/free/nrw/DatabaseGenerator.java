@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.Character;
 
 /**
  * Generate a database of mappings {character→suitable fonts for that character}
@@ -57,7 +58,7 @@ public class DatabaseGenerator {
         
         // Each zone is an area of UTF-16 where adjacent characters have
         // the same set of suitable fonts.
-        List<Character> zones = new ArrayList<Character>();
+        List<Integer> zones = new ArrayList<Integer>();
         
         // Maps each zone to a font set.
         // Same size as the "zones" list.
@@ -66,10 +67,14 @@ public class DatabaseGenerator {
         
         // Check suitability of all fonts, for each character of UTF-16.
         List<String> previousSuitableFonts = null;
-        for (char character=0; character<65535; character++) {
-            System.out.print((int)character + ":" + character + ": ");
+        for (int character=0; character<0x10FFFF; character++) {
+            String s = new String(Character.toChars(character));
+            System.out.print(character + ":" + s + ": ");
             List<String> suitableFonts = new ArrayList<String>();
             for (String font : fonts) {
+                // Skip glyphs that fonts shouldn't implement anyways
+                if(Character.getType(character) == Character.PRIVATE_USE)
+                   break;
                 if(fontHasCharacter(font, character)) {
                     System.out.print(font + Antisquare.FONTS_SEPARATOR);
                     suitableFonts.add(font);
@@ -81,7 +86,7 @@ public class DatabaseGenerator {
                     fontsSets.add(suitableFonts);
                 }
                 int suitableGroup = fontsSets.indexOf(suitableFonts);
-                zones.add(new Character(character));
+                zones.add(new Integer(character));
                 mappings.add(new Integer(suitableGroup));
                 previousSuitableFonts = suitableFonts;
             }
@@ -121,7 +126,7 @@ public class DatabaseGenerator {
         java.write("};\n");
         
         // Generate Java code for "zones".
-        java.write("public final static char[] zones = {\n");
+        java.write("public final static int[] zones = {\n");
         delimitator = "";
         for (int i=0;i<zones.size(); i++) {
             java.write(delimitator);
@@ -145,7 +150,7 @@ public class DatabaseGenerator {
     /**
      * Check whether the given font has a particular character.
      */
-    private boolean fontHasCharacter(String fontFilename, char charId) throws Exception {
+    private boolean fontHasCharacter(String fontFilename, int charId) throws Exception {
         // TODO: cache cmap tables instead of reloading every time.
         Font[] srcFontarray = FontFactory.getInstance().loadFonts(new FileInputStream(
 		fontsDirectory + System.getProperty("file.separator") + fontFilename));
