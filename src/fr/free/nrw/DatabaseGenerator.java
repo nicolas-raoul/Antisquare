@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 import java.lang.Character;
 
 /**
@@ -39,6 +40,8 @@ public class DatabaseGenerator {
      * Directory where font files are stored.
      */
     private String fontsDirectory;
+
+    private HashMap<String, CMapTable> cmapTableCache = new HashMap<String, CMapTable>();
 
     /**
      * Constructor.
@@ -151,11 +154,16 @@ public class DatabaseGenerator {
      * Check whether the given font has a particular character.
      */
     private boolean fontHasCharacter(String fontFilename, int charId) throws Exception {
-        // TODO: cache cmap tables instead of reloading every time.
-        Font[] srcFontarray = FontFactory.getInstance().loadFonts(new FileInputStream(
-		fontsDirectory + System.getProperty("file.separator") + fontFilename));
-        Font font = srcFontarray[0];
-        CMapTable cmapTable = font.getTable(Tag.cmap);
+        CMapTable cmapTable = null;
+        if(cmapTableCache.containsKey(fontFilename)) {
+            cmapTable = cmapTableCache.get(fontFilename);
+        } else {
+            Font[] srcFontarray = FontFactory.getInstance().loadFonts(new FileInputStream(
+		    fontsDirectory + System.getProperty("file.separator") + fontFilename));
+            Font font = srcFontarray[0];
+            cmapTable = font.getTable(Tag.cmap);
+            cmapTableCache.put(fontFilename, cmapTable);
+        }
         // Use the bigger cmap table if available.
         CMap cmap = cmapTable.cmap(Font.PlatformId.Windows.value(),
                 Font.WindowsEncodingId.UnicodeUCS4.value());
